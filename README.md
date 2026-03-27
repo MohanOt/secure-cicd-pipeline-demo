@@ -5,6 +5,9 @@
 ![Security](https://img.shields.io/badge/Security-Integrated-green)
 ![DevSecOps](https://img.shields.io/badge/DevSecOps-Pipeline-red)
 
+<img width="1366" height="768" alt="Screenshot_2026-03-27_22_34_05" src="https://github.com/user-attachments/assets/a982c00d-a91c-4791-8ae9-2247f6415874" />
+
+
 # Overview
 This project demonstrates a secure, production-style CI/CD pipeline for a Python application using GitHub Actions, integrating security directly into the software development lifecycle.
 
