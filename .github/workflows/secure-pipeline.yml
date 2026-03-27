@@ -1,0 +1,103 @@
+name: Secure CI/CD Pipeline
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --default-timeout=100 --retries 5 -r requirements.txt
+
+      - name: Run tests
+        run: python -m pytest
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          exit-code: 1
+          severity: CRITICAL,HIGH
+
+  build-and-push:
+    needs: test-and-scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image_ref: ${{ steps.image.outputs.image_ref }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        id: image
+        run: |
+          IMAGE_REF=ghcr.io/${{ github.repository_owner }}/secure-cicd-pipeline-demo:${{ github.sha }}
+          docker build -t $IMAGE_REF .
+          docker push $IMAGE_REF
+          echo "image_ref=$IMAGE_REF" >> $GITHUB_OUTPUT
+
+  sign-image:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    steps:
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: 'v3.0.2'
+
+      - name: Sign image with keyless Cosign
+        run: |
+          cosign sign --yes ${{ needs.build-and-push.outputs.image_ref }}
+
+  deploy:
+    needs: sign-image
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    permissions:
+      contents: read
+    steps:
+      - name: Mock deploy
+        run: |
+          echo "Deploying signed image:"
+          echo "${{ needs.build-and-push.outputs.image_ref }}"
