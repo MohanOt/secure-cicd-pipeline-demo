@@ -10,6 +10,9 @@
 # Overview
 This project demonstrates a secure, production-style CI/CD pipeline for a Python application using GitHub Actions, integrating security directly into the software development lifecycle.
 
+## Why This Matters
+Modern software supply chains are a major attack surface. This project demonstrates how to integrate security controls directly into CI/CD pipelines to ensure only secure, verified artifacts are deployed.
+
 ## Features
 - Automated testing (pytest)
 - Software Bill of Materials (SBOM) generation
