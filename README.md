@@ -1,3 +1,10 @@
+# Secure CI/CD Pipeline
+
+![CI](https://github.com/mohanot/secure-cicd-pipeline-demo/actions/workflows/secure-pipeline.yml/badge.svg)
+![Docker](https://img.shields.io/badge/Docker-Containerized-blue)
+![Security](https://img.shields.io/badge/Security-Integrated-green)
+![DevSecOps](https://img.shields.io/badge/DevSecOps-Pipeline-red)
+
 # Secure CI/CD Pipeline with GitHub Actions
 
 # Overview
